@@ -25,14 +25,14 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        notification()
+        //notification()
         checkWeb = findViewById(R.id.WebCheck)
         checkWeb.setOnClickListener {
             val builder: AlertDialog.Builder = AlertDialog.Builder(this)
             builder.setMessage("Automating Messages is riskier due to WhatsApp security policies. \nThis involves a process where every selected contact will be opened and the message will be sent one by one over a period of time. \nThis requires an additional permission known as Accessibility. \nDo you still want to enable this setting?")
             builder.setTitle("DISCLAIMER")
             builder.apply {
-                setPositiveButton("YES") { dialog, id ->
+                setPositiveButton("YES") { _, _ ->
                     showToast("Redirects to accessibility")
                     //createAlertDialog("Navigate To the Installed apps section and enable My WhatsApp Accessibility for WhatsApp Automation to work.","STEPS for Accessibility")
                     val builder: AlertDialog.Builder = AlertDialog.Builder(context)
@@ -43,13 +43,16 @@ class MainActivity : AppCompatActivity() {
                             val intentAccess = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
                             intentAccess.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                             startActivity(intentAccess)
+
+                            val intent = Intent(context, CheckerActivity::class.java)
+                            context.startActivity(intent)
                         }
                     }
                     val dialog: AlertDialog = builder.create()
                     dialog.show()
 
                 }
-                setNegativeButton("NO") { dialogInterface: DialogInterface, i: Int ->
+                setNegativeButton("NO") { _: DialogInterface, _: Int ->
                     checkWeb.isChecked = false
                 }
             }
