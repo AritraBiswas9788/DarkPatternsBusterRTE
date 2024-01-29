@@ -1,21 +1,31 @@
 package com.example.darkpatternsbuster.activities
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.DialogInterface
 import android.content.Intent
+import android.graphics.drawable.BitmapDrawable
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.CheckBox
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.res.ResourcesCompat
 import com.example.darkpatternsbuster.R
 
 class MainActivity : AppCompatActivity() {
     private lateinit var checkWeb: CheckBox
+    private  val channelid="Message Channel"
+    private val Notification_id=100
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
+        notification()
         checkWeb = findViewById(R.id.WebCheck)
         checkWeb.setOnClickListener {
             val builder: AlertDialog.Builder = AlertDialog.Builder(this)
@@ -46,6 +56,20 @@ class MainActivity : AppCompatActivity() {
             val dialog: AlertDialog = builder.create()
             dialog.show()
         }
+    }
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun notification()
+    {
+        val Drawable =ResourcesCompat.getDrawable(resources,R.drawable.gc,null)
+        val bitmapdrawable= Drawable as BitmapDrawable
+        val largeicon= bitmapdrawable.bitmap
+
+        val nm=getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        val notification= Notification.Builder(this).setLargeIcon(largeicon).setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentText("New Dark Pattern Link Found").setSubText("Dark Pattern").setChannelId(channelid).build()
+        nm.createNotificationChannel(NotificationChannel(channelid,"New Channel",NotificationManager.IMPORTANCE_HIGH))
+        nm.notify(Notification_id,notification)
+
     }
     private fun showToast(message:String)
     {
