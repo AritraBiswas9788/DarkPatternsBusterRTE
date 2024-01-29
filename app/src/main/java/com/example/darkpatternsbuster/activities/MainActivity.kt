@@ -9,6 +9,7 @@ import android.graphics.drawable.BitmapDrawable
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.widget.CheckBox
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -16,6 +17,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.res.ResourcesCompat
 import com.example.darkpatternsbuster.R
+import java.io.InputStream
+import java.net.HttpURLConnection
 
 class MainActivity : AppCompatActivity() {
     private lateinit var checkWeb: CheckBox
@@ -74,6 +77,7 @@ class MainActivity : AppCompatActivity() {
         nm.notify(Notification_id,notification)
 
     }
+
     private fun showToast(message:String)
     {
         Toast.makeText(this,message, Toast.LENGTH_SHORT).show()

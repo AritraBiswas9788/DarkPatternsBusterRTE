@@ -6,6 +6,8 @@ import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
+import java.util.LinkedList
+import java.util.Queue
 
 
 class WebsiteAnalyzerService : AccessibilityService() {
@@ -21,10 +23,10 @@ class WebsiteAnalyzerService : AccessibilityService() {
                 val nodeInfo = event.source?.getChild(0)?.getChild(0)
                 Log.i("ServiceChecker", nodeInfo?.className.toString())
                 //nodeDfs(nodeInfo)
-                //getUrlsFromViews(nodeInfo)
+                getUrlsFromViews(nodeInfo)
                 if(nodeInfo!=null && nodeInfo.text!=null) {
                     val x = nodeInfo.text.toString()
-                    Log.i("ServiceChecker", x)
+                    Log.d("ServiceChecker", x)
                 }
                 else
                     if(nodeInfo?.text==null)
@@ -54,11 +56,15 @@ class WebsiteAnalyzerService : AccessibilityService() {
             if (info == null) return
             if (info.text != null && info.text.isNotEmpty()) {
                 val capturedText = info.text.toString()
-                if (capturedText.contains("https://") || capturedText.contains("http://")) {
+                Log.d("ServiceChecker2", capturedText)
+                if (capturedText.contains("https://") || capturedText.contains("http://") || capturedText.contains(
+                        ".com"
+                    ) || capturedText.contains(".ac.in")
+                ) {
 
 
-                        val x = (info.text.toString() + " class: " + info.className)
-                        Log.i("ServiceChecker", x)
+                    val x = (info.text.toString() + " class: " + info.className)
+                    Log.d("ServiceChecker1", x)
 
                 }
             }
@@ -67,13 +73,47 @@ class WebsiteAnalyzerService : AccessibilityService() {
                 getUrlsFromViews(child)
                 child?.recycle()
             }
-        } catch (ex: StackOverflowError) {
+        }
+//            val queue: Queue<AccessibilityNodeInfo?> = LinkedList<AccessibilityNodeInfo?>()
+//            queue.add(info)
+//            Log.d("ServiceChecker2", info!!.text.toString())
+//            while (queue.isNotEmpty()) {
+//                val temp = queue.peek()
+//                queue.remove()
+//                Log.d("ServiceChecker2", temp!!.text.toString())
+////                if (temp == null) return
+//                if (temp?.text != null && temp.text.isNotEmpty()) {
+//                    val capturedText = temp.text.toString()
+//                    Log.d("ServiceChecker2", capturedText)
+//                    if (capturedText.contains("https://") || capturedText.contains("http://") || capturedText.contains(
+//                            ".com"
+//                        ) || capturedText.contains(".ac.in")
+//                    ) {
+//
+//
+//                        val x = (temp.text.toString() + " class: " + temp.className)
+//                        Log.d("ServiceChecker1", x)
+////                        break
+//
+//                    }
+//                }
+//                if (temp == null) continue
+//                for (i in 0 until temp!!.childCount) {
+//                    val child = temp!!.getChild(i)
+//                    queue.add(child)
+////                    child?.recycle()
+//                }
+//                temp.recycle()
+//
+//            }
+//        }
+        catch (ex: StackOverflowError) {
             ex.printStackTrace()
         } catch (ex: Exception) {
             ex.printStackTrace()
         }
-    }
 
+    }
     override fun onInterrupt() {
 
     }
