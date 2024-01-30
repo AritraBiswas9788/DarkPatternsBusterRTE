@@ -15,6 +15,7 @@ import io.github.cdimascio.essence.Essence
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
+import java.net.MalformedURLException
 import java.net.URL
 import java.util.concurrent.Executors
 
@@ -33,7 +34,24 @@ class CheckerActivity : AppCompatActivity() {
 
         button.setOnClickListener {
             val url = editText.text.toString()
-            Ion.with(this).load(url).asString()
+            ContentScrapper.getHTMLData(this,url,object : ContentScrapper.ScrapListener{
+                override fun onResponse(html: String?) {
+                    if(html != null) {
+                        Toast.makeText(applicationContext, "done.", Toast.LENGTH_SHORT).show()
+                        Log.i("debuggerCheck",html)
+                        textView.text=html
+
+                        val data = Essence.extract(html)
+                        Log.i("debuggerCheck", data.toString())
+                        textView.text=data.toString()
+
+
+                    } else {
+                        Toast.makeText(applicationContext,"Not found",Toast.LENGTH_LONG).show()
+                    }
+                }
+            })
+            /*Ion.with(this).load(url).asString()
                 .setCallback { exception: java.lang.Exception?, result: String ->
                     Toast.makeText(this, "done.", Toast.LENGTH_SHORT).show()
                     Log.i("debuggerCheck",result)
@@ -43,18 +61,11 @@ class CheckerActivity : AppCompatActivity() {
                     textView.text=data.text
                     //doTaskInBackGround(url)
                     //textView.text=html
-                }
-            /*Ion.with(getApplicationContext()).load("http://www.your_URL.com").asString().setCallback(new FutureCallback<String>() {
-                @Override
-                public void onCompleted(Exception e, String result) {
+                }*/
 
-                    tv.setText(result);
-                }
-
-            val data = Essence.extract(url)
-            textView.text=data.text*/
         }
     }
+
 
         fun doTaskInBackGround(url: String) {
             val executor = Executors.newSingleThreadExecutor()
@@ -97,4 +108,42 @@ class CheckerActivity : AppCompatActivity() {
             `in`.close()
             return html.toString()
         }
+
+    object ContentScrapper {
+        fun getHTMLData(activity: AppCompatActivity,url: String, scrapListener: ScrapListener) {
+            Thread {
+
+                val google: URL?
+                val `in`: BufferedReader?
+                var input: String?
+                val stringBuffer = StringBuffer()
+
+                try {
+                    google = URL(url)
+                    `in` = BufferedReader(InputStreamReader(google.openStream()))
+                    while (true) {
+                        if (`in`.readLine().also { input = it } == null)
+                            break
+                        stringBuffer.append(input)
+                    }
+                    `in`.close()
+
+                    activity.runOnUiThread {
+                        scrapListener.onResponse(stringBuffer.toString())
+                    }
+                } catch (e: MalformedURLException) {
+                    e.printStackTrace()
+                    activity.runOnUiThread {
+                        scrapListener.onResponse(null)
+                    }
+                }
+            }.start()
+
+        }
+
+
+        interface ScrapListener {
+            fun onResponse(html: String?)
+        }
     }
+}
