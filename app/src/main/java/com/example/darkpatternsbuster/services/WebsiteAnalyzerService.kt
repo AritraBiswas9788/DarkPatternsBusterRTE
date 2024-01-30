@@ -11,7 +11,8 @@ import java.util.Queue
 
 
 class WebsiteAnalyzerService : AccessibilityService() {
-
+    private var visitedUrlList:ArrayList<String> = arrayListOf()
+    private var urlWebsite:String = ""
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (rootInActiveWindow == null)
@@ -23,16 +24,8 @@ class WebsiteAnalyzerService : AccessibilityService() {
                 val nodeInfo = event.source?.getChild(0)?.getChild(0)
                 Log.i("ServiceChecker", nodeInfo?.className.toString())
                 //nodeDfs(nodeInfo)
-                getUrlsFromViews(nodeInfo)
-                if(nodeInfo!=null && nodeInfo.text!=null) {
-                    val x = nodeInfo.text.toString()
-                    Log.d("ServiceChecker", x)
-                }
-                else
-                    if(nodeInfo?.text==null)
-                         Log.i("ServiceChecker", "null text Found")
-                    else
-                        Log.i("ServiceChecker", "null root Found")
+                nodeFindDfs(nodeInfo)
+
             }
         }
     }
@@ -50,6 +43,48 @@ class WebsiteAnalyzerService : AccessibilityService() {
             child?.recycle()
         }
     }
+
+    fun nodeFindDfs(info: AccessibilityNodeInfo?) {
+        if (info == null) return
+        if (info.text != null && info.text.length > 0) {
+
+            if (info.viewIdResourceName == "com.android.chrome:id/url_bar") {
+                val x = info.text.toString()
+                Log.i("" +
+                        "", x)
+                if(!visitedUrlList.contains(x)) {
+                    visitedUrlList.add(x)
+                    urlWebsite = info.viewIdResourceName
+                    //getHtmlView("https://$urlWebsite")
+                }
+            }
+        }
+        for (i in 0 until info.childCount) {
+            val child = info.getChild(i)
+            nodeDfs(child)
+            child?.recycle()
+        }
+
+    }
+
+    /*private fun getHtmlView(urlWebsite: String?) {
+        Ion.with(applicationContext).load(urlWebsite).asString()
+            .setCallback { exception: java.lang.Exception?, result: String? ->
+                if(result!=null) {
+                    Toast.makeText(this, "done.", Toast.LENGTH_SHORT).show()
+                    Log.i("debuggerCheck", result.substring(0, 150))
+                    //textView.text = result
+                    val data = Essence.extract(result)
+                    Log.i("debuggerCheck", data.toString().substring(0, 150))
+                    //textView.text = data.text
+                }
+                else
+                {
+                    Log.i("debuggerCheck", "Null found")
+                }
+                }
+
+        }*/
 
     fun getUrlsFromViews(info: AccessibilityNodeInfo?) {
         try {
