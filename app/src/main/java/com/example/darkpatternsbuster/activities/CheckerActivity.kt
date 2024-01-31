@@ -33,21 +33,24 @@ class CheckerActivity : AppCompatActivity() {
         editText = findViewById(R.id.editText)
 
         button.setOnClickListener {
-            val url = editText.text.toString()
-            ContentScrapper.getHTMLData(this,url,object : ContentScrapper.ScrapListener{
+            var url = editText.text.toString()
+            url = "https://$url"
+            ContentScrapper.getHTMLData(url,object : ContentScrapper.ScrapListener{
                 override fun onResponse(html: String?) {
                     if(html != null) {
-                        Toast.makeText(applicationContext, "done.", Toast.LENGTH_SHORT).show()
+                        //Toast.makeText(applicationContext, "done.", Toast.LENGTH_SHORT).show()
+                        Log.i("debuggerCheck","done.")
                         Log.i("debuggerCheck",html)
-                        textView.text=html
+                        //textView.text=html
 
                         val data = Essence.extract(html)
                         Log.i("debuggerCheck", data.toString())
-                        textView.text=data.toString()
+                        //textView.text=data.toString()
 
 
                     } else {
-                        Toast.makeText(applicationContext,"Not found",Toast.LENGTH_LONG).show()
+                        //Toast.makeText(applicationContext,"Not found",Toast.LENGTH_LONG).show()
+                        Log.i("debuggerCheck","not found.")
                     }
                 }
             })
@@ -110,7 +113,7 @@ class CheckerActivity : AppCompatActivity() {
         }
 
     object ContentScrapper {
-        fun getHTMLData(activity: AppCompatActivity,url: String, scrapListener: ScrapListener) {
+        fun getHTMLData(url: String, scrapListener: ScrapListener) {
             Thread {
 
                 val google: URL?
@@ -127,15 +130,10 @@ class CheckerActivity : AppCompatActivity() {
                         stringBuffer.append(input)
                     }
                     `in`.close()
-
-                    activity.runOnUiThread {
-                        scrapListener.onResponse(stringBuffer.toString())
-                    }
+                    scrapListener.onResponse(stringBuffer.toString())
                 } catch (e: MalformedURLException) {
                     e.printStackTrace()
-                    activity.runOnUiThread {
-                        scrapListener.onResponse(null)
-                    }
+                    scrapListener.onResponse(null)
                 }
             }.start()
 

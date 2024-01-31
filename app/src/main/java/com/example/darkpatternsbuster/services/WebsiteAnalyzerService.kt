@@ -5,24 +5,32 @@ import android.content.Intent
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
+import com.example.darkpatternsbuster.activities.CheckerActivity
+import io.github.cdimascio.essence.Essence
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.net.MalformedURLException
+import java.net.URL
 import java.util.LinkedList
 import java.util.Queue
 
 
 class WebsiteAnalyzerService : AccessibilityService() {
-    private var visitedUrlList:ArrayList<String> = arrayListOf()
-    private var urlWebsite:String = ""
+    private var visitedUrlList: ArrayList<String> = arrayListOf()
+    private var urlWebsite: String = ""
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (rootInActiveWindow == null)
             return
-        val rootNodeInfo: AccessibilityNodeInfoCompat = AccessibilityNodeInfoCompat.wrap(rootInActiveWindow)
+        val rootNodeInfo: AccessibilityNodeInfoCompat =
+            AccessibilityNodeInfoCompat.wrap(rootInActiveWindow)
         //Log.i("ServiceChecker", "Accessibility Event Triggered")
         if (event != null) {
             if (AccessibilityEvent.eventTypeToString(event.eventType).contains("WINDOW")) {
-                val nodeInfo = event.source?.getChild(0)?.getChild(0)
-                Log.i("ServiceChecker", nodeInfo?.className.toString())
+                val nodeInfo = event.source
+                //Log.i("ServiceChecker", nodeInfo?.className.toString())
                 //nodeDfs(nodeInfo)
                 nodeFindDfs(nodeInfo)
 
@@ -49,42 +57,46 @@ class WebsiteAnalyzerService : AccessibilityService() {
         if (info.text != null && info.text.length > 0) {
 
             if (info.viewIdResourceName == "com.android.chrome:id/url_bar") {
-                val x = info.text.toString()
-                Log.i("" +
-                        "", x)
-                if(!visitedUrlList.contains(x)) {
+                var x = info.text.toString()
+                if(!x.contains("https://")&&!x.contains("http://"))
+                    x="https://$x"
+                Log.i("ServiceChecker", x)
+
+                if (!visitedUrlList.contains(x)) {
                     visitedUrlList.add(x)
-                    urlWebsite = info.viewIdResourceName
-                    //getHtmlView("https://$urlWebsite")
+                    urlWebsite = x
+                    getHtmlView(x)
                 }
             }
         }
         for (i in 0 until info.childCount) {
             val child = info.getChild(i)
-            nodeDfs(child)
+            nodeFindDfs(child)
             child?.recycle()
         }
 
     }
 
-    /*private fun getHtmlView(urlWebsite: String?) {
-        Ion.with(applicationContext).load(urlWebsite).asString()
-            .setCallback { exception: java.lang.Exception?, result: String? ->
-                if(result!=null) {
-                    Toast.makeText(this, "done.", Toast.LENGTH_SHORT).show()
-                    Log.i("debuggerCheck", result.substring(0, 150))
-                    //textView.text = result
-                    val data = Essence.extract(result)
-                    Log.i("debuggerCheck", data.toString().substring(0, 150))
-                    //textView.text = data.text
-                }
-                else
-                {
-                    Log.i("debuggerCheck", "Null found")
-                }
-                }
+    private fun getHtmlView(url: String) {
+        HTMLFileReader.getHTMLData(url,object : HTMLFileReader.ScrapListener{
+            override fun onResponse(html: String?) {
+                if(html != null) {
+                    //Toast.makeText(applicationContext, "done.", Toast.LENGTH_SHORT).show()
+                    Log.i("ServiceChecker","done.")
+                    Log.i("ServiceChecker",html)
+                    //textView.text=html
+                    val data = Essence.extract(html)
+                    Log.i("ServiceChecker", data.toString())
+                    //textView.text=data.toString()
 
-        }*/
+
+                } else {
+                    //Toast.makeText(applicationContext,"Not found",Toast.LENGTH_LONG).show()
+                    Log.e("ServiceChecker","not found.")
+                }
+            }
+        })
+    }
 
     fun getUrlsFromViews(info: AccessibilityNodeInfo?) {
         try {
@@ -109,6 +121,9 @@ class WebsiteAnalyzerService : AccessibilityService() {
                 child?.recycle()
             }
         }
+
+
+
 //            val queue: Queue<AccessibilityNodeInfo?> = LinkedList<AccessibilityNodeInfo?>()
 //            queue.add(info)
 //            Log.d("ServiceChecker2", info!!.text.toString())
@@ -149,6 +164,7 @@ class WebsiteAnalyzerService : AccessibilityService() {
         }
 
     }
+
     override fun onInterrupt() {
 
     }
@@ -160,5 +176,38 @@ class WebsiteAnalyzerService : AccessibilityService() {
     override fun onServiceConnected() {
         super.onServiceConnected()
         Log.i("ServiceChecker", "Service-Connected")
+    }
+
+    object HTMLFileReader {
+        fun getHTMLData(url: String, scrapListener: ScrapListener) {
+            Thread {
+
+                val google: URL?
+                val `in`: BufferedReader?
+                var input: String?
+                val stringBuffer = StringBuffer()
+
+                try {
+                    google = URL(url)
+                    `in` = BufferedReader(InputStreamReader(google.openStream()))
+                    while (true) {
+                        if (`in`.readLine().also { input = it } == null)
+                            break
+                        stringBuffer.append(input)
+                    }
+                    `in`.close()
+                    scrapListener.onResponse(stringBuffer.toString())
+                } catch (e: MalformedURLException) {
+                    e.printStackTrace()
+                    scrapListener.onResponse(null)
+                }
+            }.start()
+
+        }
+
+
+        interface ScrapListener {
+            fun onResponse(html: String?)
+        }
     }
 }

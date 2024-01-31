@@ -47,8 +47,8 @@ class MainActivity : AppCompatActivity() {
                             intentAccess.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                             startActivity(intentAccess)
 
-                            val intent = Intent(context, CheckerActivity::class.java)
-                            context.startActivity(intent)
+                            /*val intent = Intent(context, CheckerActivity::class.java)
+                            context.startActivity(intent)*/
                         }
                     }
                     val dialog: AlertDialog = builder.create()
